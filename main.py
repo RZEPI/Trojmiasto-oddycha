@@ -42,11 +42,11 @@ def save_data(spaces):
 
 
 def app():
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {AUTH_KEY}",
+    }
     while not exit:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {AUTH_KEY}",
-        }
         response = requests.get(AIRTHINGS_URL, headers=headers, verify=False)
         if response.ok:
             data = response.json()
