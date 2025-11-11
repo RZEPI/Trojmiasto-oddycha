@@ -47,7 +47,6 @@ def process_device_data(data):
             #TODO: report low battery by email
             print(f"{datetime.now()} | Device {device_name} has low battery: {device_data['battery']}%")
 
-        #TODO: Prepare charts
         print(f"{datetime.now()} | Saving data for {device_name}... ", end="")
         save_data(device_name, device_data)
         print(f"Done.")
