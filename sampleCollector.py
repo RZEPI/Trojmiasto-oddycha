@@ -22,8 +22,9 @@ def save_data(device_name, sensor_data):
     with open(file_path, "a", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
-            writer.writerow(["time", "co2", "humidity", "pm10", "pm1", "pm25", "pressure", "sla", "temp", "virusRisk", "voc"])
-        writer.writerow([sensor_data['time'], sensor_data['co2'], sensor_data['humidity'], sensor_data['pm10'],
+            #TODO: Configurable metrics
+            writer.writerow(["time", "device_name", "co2", "humidity", "pm10", "pm1", "pm25", "pressure", "sla", "temp", "virusRisk", "voc"])
+        writer.writerow([sensor_data['time'], device_name, sensor_data['co2'], sensor_data['humidity'], sensor_data['pm10'],
                          sensor_data['pm1'], sensor_data['pm25'], sensor_data['pressure'], sensor_data['sla'],
                          sensor_data['temp'], sensor_data['virusRisk'], sensor_data['voc']])
 
@@ -67,7 +68,7 @@ def main():
     print(f"{datetime.now()} | Starting sample collector...")
     
     schedule.every(5).minutes.do(collect_samples)
-    schedule.every().day.at("08:00").do(send_daily_email)
+    #schedule.every().day.at("08:00").do(send_daily_email)
 
     collect_samples() 
     while True:
