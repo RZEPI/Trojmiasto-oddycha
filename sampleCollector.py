@@ -1,4 +1,4 @@
-import requests, os, json, csv
+import requests, os, schedule, csv, time
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -22,7 +22,6 @@ def save_data(device_name, sensor_data):
     with open(file_path, "a", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
-            #TODO: read headers from configured keys
             writer.writerow(["time", "co2", "humidity", "pm10", "pm1", "pm25", "pressure", "sla", "temp", "virusRisk", "voc"])
         writer.writerow([sensor_data['time'], sensor_data['co2'], sensor_data['humidity'], sensor_data['pm10'],
                          sensor_data['pm1'], sensor_data['pm25'], sensor_data['pressure'], sensor_data['sla'],
@@ -37,16 +36,16 @@ def process_device_data(data):
         
         if device['data'] is None:
             #TODO: report no device data at timestamp to .log file
-            print(f"Device {device_name} has no data.")
+            print(f"{datetime.now()} | Device {device_name} has no data.")
             continue
 
         device_data = device['data']
         if device_data['battery'] < 10:
             #TODO: report low battery by email
-            print(f"Device {device_name} has low battery: {device_data['battery']}%")
+            print(f"{datetime.now()} | Device {device_name} has low battery: {device_data['battery']}%")
 
         #TODO: Prepare charts
-        print(f"Saving data for {device_name}... ", end="")
+        print(f"{datetime.now()} | Saving data for {device_name}... ", end="")
         save_data(device_name, device_data)
         print(f"Done.")
 
@@ -54,14 +53,26 @@ def process_device_data(data):
         print(device_data)
         print("\n")
 
+def collect_samples():
+    try:
+        resp = requests.get(SAMPLES_URL, headers=HEADERS, timeout=10)
+        if resp.ok:
+            process_device_data(resp.json())
+        else:
+            print(f"{datetime.now()} | API error: {resp.status_code}")
+    except Exception as e:
+        print(f"{datetime.now()} | Exception during collection: {e}")
+
 def main():
-    response = requests.get(SAMPLES_URL, headers=HEADERS)
-    if response.ok:
-        data = response.json()
-        process_device_data(data)
-    else:
-        print(f"Request failed with status: {response.status_code}")
-        print(response.json())
+    print(f"{datetime.now()} | Starting sample collector...")
+    
+    schedule.every(5).minutes.do(collect_samples)
+    schedule.every().day.at("08:00").do(send_daily_email)
+
+    collect_samples() 
+    while True:
+        schedule.run_pending()
+        time.sleep(30)
 
 if __name__ == "__main__":
     main()
