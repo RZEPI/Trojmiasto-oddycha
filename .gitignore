@@ -1,4 +1,5 @@
 *.json
 .env
-data/*
-charts/*
+data/
+charts/
+__pycache__/

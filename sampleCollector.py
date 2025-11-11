@@ -1,4 +1,6 @@
 import requests, os, schedule, csv, time
+from emailSender import send_daily_email
+from chartGenerator import generate_sensor_charts
 from dotenv import load_dotenv
 from datetime import datetime
 
@@ -22,7 +24,7 @@ def save_data(device_name, sensor_data):
     with open(file_path, "a", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
-            #TODO: Configurable metrics
+            #TODO: Configurable metrics here and in chartGenerator.py
             writer.writerow(["time", "device_name", "co2", "humidity", "pm10", "pm1", "pm25", "pressure", "sla", "temp", "virusRisk", "voc"])
         writer.writerow([sensor_data['time'], device_name, sensor_data['co2'], sensor_data['humidity'], sensor_data['pm10'],
                          sensor_data['pm1'], sensor_data['pm25'], sensor_data['pressure'], sensor_data['sla'],
@@ -50,10 +52,6 @@ def process_device_data(data):
         save_data(device_name, device_data)
         print(f"Done.")
 
-        #TODO: Remove debug print
-        print(device_data)
-        print("\n")
-
 def collect_samples():
     try:
         resp = requests.get(SAMPLES_URL, headers=HEADERS, timeout=10)
@@ -68,7 +66,8 @@ def main():
     print(f"{datetime.now()} | Starting sample collector...")
     
     schedule.every(5).minutes.do(collect_samples)
-    #schedule.every().day.at("08:00").do(send_daily_email)
+    schedule.every().day.at("08:00").do(generate_sensor_charts)
+    schedule.every().day.at("08:00").do(send_daily_email)
 
     collect_samples() 
     while True:

@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def find_csv_for_date(target_date: datetime, base_dir: str):
     year = target_date.strftime("%Y")
@@ -12,7 +12,10 @@ def find_csv_for_date(target_date: datetime, base_dir: str):
         print(f"{datetime.now()} | Error: No CSV found for {target_date} at {csv_path}")
     return csv_path
 
-def generate_sensor_charts(target_date: datetime, base_dir="data"):
+def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
+    if target_date is None:
+        target_date = datetime.now() - timedelta(days=1)
+
     csv_file_path = find_csv_for_date(target_date, base_dir)
     df = pd.read_csv(csv_file_path)
 
