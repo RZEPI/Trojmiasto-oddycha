@@ -7,24 +7,13 @@ from email.mime.image import MIMEImage
 
 load_dotenv()
 
-def send_daily_email(date: datetime = None):
+
+def send_air_quality_email(date: datetime = None):
     if date is None:
         date = datetime.now() - timedelta(days=1)
 
-    sender = os.getenv("SENDER")
-    recipient = os.getenv("RECIPIENT")
-    subject = f"Airthings report for {date.date()}"
-
     msg = MIMEMultipart("related")
-    msg["From"] = sender
-    msg["To"] = recipient
-    msg["Subject"] = subject
-
-    alt_part = MIMEMultipart("alternative")
-    msg.attach(alt_part)
-
-    text = "Your email client does not support HTML emails."
-    alt_part.attach(MIMEText(text, "plain"))
+    subject = f"Airthings report for {date.date()} - Air quality"
 
     html = f"""
     <html>
@@ -40,7 +29,9 @@ def send_daily_email(date: datetime = None):
         print(f"{datetime.now()} | Error: No charts found for {date.date()}")
         return
 
-    sensors = [d for d in os.listdir(charts_dir) if os.path.isdir(os.path.join(charts_dir, d))]
+    sensors = [
+        d for d in os.listdir(charts_dir) if os.path.isdir(os.path.join(charts_dir, d))
+    ]
     images_attached = {}
     for sensor in sensors:
         sensor_dir = os.path.join(charts_dir, sensor)
@@ -48,19 +39,65 @@ def send_daily_email(date: datetime = None):
         html += f"<h2>Sensor: {sensor}</h2>"
         for chart_path in chart_files:
             cid = f"{sensor}_{os.path.basename(chart_path).replace('.', '_')}"
-            html += f'<h3>{os.path.splitext(os.path.basename(chart_path))[0]}</h3>'
+            html += f"<h3>{os.path.splitext(os.path.basename(chart_path))[0]}</h3>"
             html += f'<img src="cid:{cid}" style="width:100%; max-width:600px; border:1px solid #ccc;"><br><br>'
             images_attached[cid] = chart_path
 
     html += "<hr></body></html>"
-    alt_part.attach(MIMEText(html, "html"))
+    msg.attach(MIMEText(html, "html"))
 
     for cid, path in images_attached.items():
         with open(path, "rb") as f:
             img = MIMEImage(f.read())
             img.add_header("Content-ID", f"<{cid}>")
-            img.add_header("Content-Disposition", "inline", filename=os.path.basename(path))
+            img.add_header(
+                "Content-Disposition", "inline", filename=os.path.basename(path)
+            )
             msg.attach(img)
+
+    send_email_with_msg(subject, msg, date)
+
+
+def send_statuses_email(statuses, date: datetime = None):
+    if date is None:
+        date = datetime.now() - timedelta(days=1)
+
+    msg = MIMEMultipart("related")
+    subject = f"Airthings report for {date.date()} - Device statuses"
+
+    html = f"""
+    <html>
+    <body>
+        <p style="font-size:1.2em; color:#777;">
+            Generated automatically on <b>{date.today()}</b>.<br>
+            This reports contains information about device statuses.
+        </p>
+        <hr>
+        <ul style="list-style-type:none;">
+    """
+
+    for device_name, device_status in statuses:
+        html += f"<li>{device_name}: {device_status}</li>"
+
+    html += "</ul><hr></body></html>"
+    msg.attach(MIMEText(html, "html"))
+
+    send_email_with_msg(subject, msg, date)
+
+
+def send_email_with_msg(subject, msg, date):
+    sender = os.getenv("SENDER")
+    recipient = os.getenv("RECIPIENT")
+
+    msg["From"] = sender
+    msg["To"] = recipient
+    msg["Subject"] = subject
+
+    alt_part = MIMEMultipart("alternative")
+    msg.attach(alt_part)
+
+    text = "Your email client does not support HTML emails."
+    alt_part.attach(MIMEText(text, "plain"))
 
     with smtplib.SMTP(os.getenv("SMTP_SERVER"), os.getenv("SMTP_PORT")) as server:
         server.starttls()
@@ -69,6 +106,7 @@ def send_daily_email(date: datetime = None):
 
     print(f"{datetime.now()} | Email sent for {date.date()}")
 
+
 if __name__ == "__main__":
     target_date = datetime.now()
-    send_daily_email(target_date)
+    send_air_quality_email(target_date)

@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 
+
 def find_csv_for_date(target_date: datetime, base_dir: str):
     year = target_date.strftime("%Y")
     month = target_date.strftime("%m")
-    csv_path = os.path.join(base_dir, year, month, f"{month}.csv")
+    csv_path = os.path.join(base_dir, year, f"{month}.csv")
     if not os.path.exists(csv_path):
         print(f"{datetime.now()} | Error: No CSV found for {target_date} at {csv_path}")
     return csv_path
+
 
 def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
     if target_date is None:
@@ -19,7 +21,7 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
     csv_file_path = find_csv_for_date(target_date, base_dir)
     df = pd.read_csv(csv_file_path)
 
-    df["datetime"] = pd.to_datetime(df["time"], unit="s") 
+    df["datetime"] = pd.to_datetime(df["time"], unit="s")
     df["date"] = df["datetime"].dt.date
 
     df = df[df["date"] == target_date.date()]
@@ -27,13 +29,30 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
         print(f"{datetime.now()} | Error: No data found for {target_date.date()}")
         return
 
-    metrics = ["co2", "humidity", "pm10", "pm1", "pm25", "pressure", "sla", "temp", "virusRisk", "voc"]
+    metrics = [
+        "co2",
+        "humidity",
+        "pm10",
+        "pm1",
+        "pm25",
+        "pressure",
+        "sla",
+        "temp",
+        "virusRisk",
+        "voc",
+    ]
     for device, group in df.groupby("device_name"):
         group = group.sort_values("datetime")
 
         for metric in metrics:
             plt.figure(figsize=(10, 5))
-            plt.plot(group["datetime"], group[metric], marker="o", linestyle="-", label=metric)
+            plt.plot(
+                group["datetime"],
+                group[metric],
+                marker="o",
+                linestyle="-",
+                label=metric,
+            )
             plt.title(f"{metric.upper()} for {device} on {target_date.date()}")
             plt.xlabel("Time")
             plt.ylabel(metric.upper())
