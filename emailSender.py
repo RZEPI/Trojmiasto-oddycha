@@ -7,6 +7,8 @@ from email.mime.image import MIMEImage
 
 load_dotenv()
 
+low_battery_devices = []
+
 def send_daily_email(date: datetime = None):
     if date is None:
         date = datetime.now() - timedelta(days=1)
@@ -40,6 +42,9 @@ def send_daily_email(date: datetime = None):
         print(f"{datetime.now()} | Error: No charts found for {date.date()}")
         return
 
+    for device in low_battery_devices:
+        html += f'<p style="color:red;">⚠️ Low battery alert for device <b>{device["device_name"]}</b>: {device["battery"]}% remaining.</p>'
+
     sensors = [d for d in os.listdir(charts_dir) if os.path.isdir(os.path.join(charts_dir, d))]
     images_attached = {}
     for sensor in sensors:
@@ -70,5 +75,7 @@ def send_daily_email(date: datetime = None):
     print(f"{datetime.now()} | Email sent for {date.date()}")
 
 if __name__ == "__main__":
+    low_battery_devices.append({"device_name": "Test_Device", "battery": 5})
     target_date = datetime.now()
     send_daily_email(target_date)
+    
