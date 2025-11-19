@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
+from config import metrics
 
 
 def find_csv_for_date(target_date: datetime, base_dir: str):
@@ -29,18 +30,6 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
         print(f"{datetime.now()} | Error: No data found for {target_date.date()}")
         return
 
-    metrics = [
-        "co2",
-        "humidity",
-        "pm10",
-        "pm1",
-        "pm25",
-        "pressure",
-        "sla",
-        "temp",
-        "virusRisk",
-        "voc",
-    ]
     for device, group in df.groupby("device_name"):
         group = group.sort_values("datetime")
 

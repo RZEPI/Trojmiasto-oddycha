@@ -3,6 +3,7 @@ from emailSender import send_air_quality_email, send_statuses_email
 from chartGenerator import generate_sensor_charts
 from dotenv import load_dotenv
 from datetime import datetime
+from config import metrics, snesor_headers
 
 load_dotenv()
 SAMPLES_URL = f"https://ext-api.airthings.com/v1/locations/{os.getenv('LOCATION_ID')}/latest-samples"
@@ -28,38 +29,15 @@ def save_data(device_name, sensor_data):
         writer = csv.writer(f)
         if not file_exists:
             # TODO: Configurable metrics here and in chartGenerator.py
-            writer.writerow(
-                [
-                    "time",
-                    "device_name",
-                    "co2",
-                    "humidity",
-                    "pm10",
-                    "pm1",
-                    "pm25",
-                    "pressure",
-                    "sla",
-                    "temp",
-                    "virusRisk",
-                    "voc",
-                ]
-            )
-        writer.writerow(
-            [
-                sensor_data.get("time", datetime.now().timestamp()),
-                device_name,
-                sensor_data.get("co2", 0),
-                sensor_data.get("humidity", 0),
-                sensor_data.get("pm10", 0),
-                sensor_data.get("pm1", 0),
-                sensor_data.get("pm25", 0),
-                sensor_data.get("pressure", 0),
-                sensor_data.get("sla", 0),
-                sensor_data.get("temp", 0),
-                sensor_data.get("virusRisk", 0),
-                sensor_data.get("voc", 0),
-            ]
-        )
+            writer.writerow(snesor_headers)
+
+        sensor_row = [
+            sensor_data.get("time", datetime.now().timestamp()),
+            device_name,
+        ]
+        for metric in metrics:
+            sensor_row.append(sensor_data.get(metric, 0))
+        writer.writerow(sensor_row)
 
 
 def process_device_data(data):
