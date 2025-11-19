@@ -162,8 +162,7 @@ def main():
         schedule.every(5).minutes.do(
             functools.partial(collect_samples, process_device_data)
         )
-        schedule.every(1).minutes.do(send_device_statuses)
-        # schedule.every().day.at("08:00").do(send_device_statuses)
+        schedule.every().day.at("08:00").do(send_device_statuses)
         schedule.every().day.at("08:00").do(generate_sensor_charts)
         schedule.every().day.at("08:00").do(send_air_quality_email)
 
