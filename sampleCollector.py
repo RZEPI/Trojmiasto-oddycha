@@ -124,8 +124,9 @@ def auth():
     )
 
 
-def collect_samples(token, process_data_fnc, retry=True):
+def collect_samples(process_data_fnc, retry=True):
     try:
+        global token
         sample_headers = {**HEADERS, "authorization": f"Bearer {token}"}
 
         resp = requests.get(SAMPLES_URL, headers=sample_headers, timeout=10)
@@ -135,16 +136,16 @@ def collect_samples(token, process_data_fnc, retry=True):
         if resp.status_code == 401 and retry:
             print(f"{datetime.now()} | Token has expired, retrying to authenticate")
             token = auth()
-            collect_samples(token, process_data_fnc, False)
+            collect_samples(process_data_fnc, False)
         elif not resp.ok:
             print(f"{datetime.now()} | Request failed with status {resp.status_code}")
     except Exception as e:
         print(f"{datetime.now()} | Exception during collection: {e}")
 
 
-def send_device_statuses(token):
+def send_device_statuses():
     try:
-        device_statuses = collect_samples(token, process_device_statuses)
+        device_statuses = collect_samples(process_device_statuses)
         send_statuses_email(device_statuses)
     except Exception as e:
         print(f"{datetime.now()} | Exception during sending statuses of devices: {e}")
@@ -153,14 +154,16 @@ def send_device_statuses(token):
 def main():
     print(f"{datetime.now()} | Starting sample collector...")
 
-    try:
+    global token
+    if token is None:
         token = auth()
+
+    try:
         schedule.every(5).minutes.do(
-            functools.partial(collect_samples, token, process_device_data)
+            functools.partial(collect_samples, process_device_data)
         )
-        schedule.every().day.at("08:00").do(
-            functools.partial(send_device_statuses, token)
-        )
+        schedule.every(1).minutes.do(send_device_statuses)
+        # schedule.every().day.at("08:00").do(send_device_statuses)
         schedule.every().day.at("08:00").do(generate_sensor_charts)
         schedule.every().day.at("08:00").do(send_air_quality_email)
 
@@ -172,4 +175,5 @@ def main():
 
 
 if __name__ == "__main__":
+    token = None
     main()
