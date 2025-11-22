@@ -4,6 +4,21 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 
+# Define thresholds for metrics (default values from Airthings)
+THRESHOLDS = {
+    "co2": (800, 1000),            # example: warning at 800, danger at 1000
+    "humidity": (30, 25, 60, 70),  # (low_warn, low_danger, high_warn, high_danger)
+    "pm10": (50, 150),
+    "pm1": (10, 25),
+    "pm25": (10, 25),
+    #"pressure": (1000, 1020),
+    #"sla": (30, 70),
+    "temp": (18, 25),
+    #"virusRisk": (3, 6),
+    "voc": (250, 2000),
+}
+THRESHOLD_COLORS = ["orange", "red"]
+
 def find_csv_for_date(target_date: datetime, base_dir: str):
     year = target_date.strftime("%Y")
     month = target_date.strftime("%m")
@@ -32,8 +47,27 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
         group = group.sort_values("datetime")
 
         for metric in metrics:
+            plt.style.use("seaborn-v0_8")
             plt.figure(figsize=(10, 5))
-            plt.plot(group["datetime"], group[metric], marker="o", linestyle="-", label=metric)
+            plt.plot(group["datetime"], group[metric], marker="o", linestyle="-", label=metric, markersize=3, linewidth=1.8)
+            
+            # Add threshold lines if defined
+            if metric in THRESHOLDS:
+                thresholds = THRESHOLDS[metric]
+                # If only one thereshold is given, convert it to a tuple with one element empty
+                if isinstance(thresholds, (int, float)):
+                    thresholds = (thresholds,)
+
+                for idx, t in enumerate(thresholds):
+                    color = THRESHOLD_COLORS[idx % len(THRESHOLD_COLORS)]
+                    plt.axhline(
+                        y=t,
+                        linestyle="--",
+                        linewidth=1,
+                        color=color,
+                        label=f"Threshold: {t}"
+                    )
+            
             plt.title(f"{metric.upper()} for {device} on {target_date.date()}")
             plt.xlabel("Time")
             plt.ylabel(metric.upper())
