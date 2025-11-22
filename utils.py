@@ -48,8 +48,10 @@ def load_statuses(target_date: datetime):
     statuses = []
     file_path = find_csv_for_date(target_date, base_dir="data", suffix="_status")
     df = get_df_for_date(target_date, file_path)
-    if df is not None:
+    df = df.drop(["time", "datetime", "date"], axis=1)
+
+    if not df.empty:
         headers = df.columns.tolist()
         for device_name in headers:
-            statuses.append((device_name, df[device_name]))
+            statuses.append((device_name, df[device_name].item()))
     return statuses

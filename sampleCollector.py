@@ -16,11 +16,12 @@ HEADERS = {
     "Content-Type": "application/json",
 }
 
+SEND_TIME = "08:00"
+
 
 def save_sensor_data(device_name, sensor_data):
-    year, month = get_date_parts_str(
-        sensor_data.get("time", datetime.now().timestamp())
-    )
+    date = datetime.fromtimestamp(sensor_data.get("time", datetime.now().timestamp()))
+    year, month = get_date_parts_str(date)
 
     dir_path = os.path.join("data", year)
     os.makedirs(dir_path, exist_ok=True)
@@ -44,8 +45,8 @@ def save_device_statuses(statuses):
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, f"{month}_status.csv")
 
-    headers = []
-    row = []
+    headers = ["time"]
+    row = [int(datetime.now().timestamp())]
     for device_name, device_status in statuses:
         headers.append(device_name)
         row.append(device_status)
@@ -75,7 +76,7 @@ def process_device_data(data):
             )
 
         print(f"{datetime.now()} | Saving data for {device_name}... ", end="")
-        save_data_csv(device_name, device_data)
+        save_sensor_data(device_name, device_data)
         print(f"Done.")
 
 
@@ -93,7 +94,8 @@ def process_device_statuses(data):
         elif battery_state <= 10:
             device_state = "low battery"
         device_statuses.append((device_name, device_state))
-    return sorted(device_statuses, key=lambda key: key[0])
+    sorted_statuses = sorted(device_statuses, key=lambda key: key[0])
+    save_device_statuses(sorted_statuses)
 
 
 def auth():
@@ -149,11 +151,11 @@ def main():
         schedule.every(5).minutes.do(
             functools.partial(collect_samples, process_device_data)
         )
-        schedule.every().day.at("07:55").do(
-            function.partial(collect_samples, process_device_statuses)
+        schedule.every().day.at(SEND_TIME).do(
+            functools.partial(collect_samples, process_device_statuses)
         )
-        schedule.every().day.at("08:00").do(generate_sensor_charts)
-        schedule.every().day.at("08:00").do(send_daily_email)
+        schedule.every().day.at(SEND_TIME).do(generate_sensor_charts)
+        schedule.every().day.at(SEND_TIME).do(send_daily_email)
 
         while True:
             schedule.run_pending()

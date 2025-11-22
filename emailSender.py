@@ -41,6 +41,8 @@ def send_daily_email(date: datetime = None):
 
     statuses = load_statuses(date)
 
+    print(statuses)
+
     for device_name, device_status in statuses:
         color = "#FF5454"
         if device_status == "low battery":

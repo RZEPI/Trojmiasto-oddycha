@@ -14,6 +14,12 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
     csv_file_path = find_csv_for_date(target_date, base_dir)
     df = get_df_for_date(target_date, csv_file_path)
 
+    if df is None:
+        print(
+            f"{datetime.now()} | Error: No data about any sensors found for {target_date} at {csv_file_path}"
+        )
+        return
+
     for device, group in df.groupby("device_name"):
         group = group.sort_values("datetime")
 
