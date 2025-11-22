@@ -4,15 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 from config import metrics
-
-
-def find_csv_for_date(target_date: datetime, base_dir: str):
-    year = target_date.strftime("%Y")
-    month = target_date.strftime("%m")
-    csv_path = os.path.join(base_dir, year, f"{month}.csv")
-    if not os.path.exists(csv_path):
-        print(f"{datetime.now()} | Error: No CSV found for {target_date} at {csv_path}")
-    return csv_path
+from utils import find_csv_for_date, get_df_for_date
 
 
 def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
@@ -20,15 +12,7 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
         target_date = datetime.now() - timedelta(days=1)
 
     csv_file_path = find_csv_for_date(target_date, base_dir)
-    df = pd.read_csv(csv_file_path)
-
-    df["datetime"] = pd.to_datetime(df["time"], unit="s")
-    df["date"] = df["datetime"].dt.date
-
-    df = df[df["date"] == target_date.date()]
-    if df.empty:
-        print(f"{datetime.now()} | Error: No data found for {target_date.date()}")
-        return
+    df = get_df_for_date(target_date, csv_file_path)
 
     for device, group in df.groupby("device_name"):
         group = group.sort_values("datetime")

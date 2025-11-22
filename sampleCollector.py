@@ -1,9 +1,11 @@
 import requests, os, schedule, csv, time, json, functools
-from emailSender import send_air_quality_email, send_statuses_email
+from emailSender import send_daily_email
 from chartGenerator import generate_sensor_charts
 from dotenv import load_dotenv
 from datetime import datetime
-from config import metrics, snesor_headers
+from config import metrics, sensor_headers
+from utils import get_date_parts_str, save_data_csv
+
 
 load_dotenv()
 SAMPLES_URL = f"https://ext-api.airthings.com/v1/locations/{os.getenv('LOCATION_ID')}/latest-samples"
@@ -15,29 +17,40 @@ HEADERS = {
 }
 
 
-def save_data(device_name, sensor_data):
-    dt = datetime.fromtimestamp(sensor_data.get("time", datetime.now().timestamp()))
-    year = dt.strftime("%Y")
-    month = dt.strftime("%m")
+def save_sensor_data(device_name, sensor_data):
+    year, month = get_date_parts_str(
+        sensor_data.get("time", datetime.now().timestamp())
+    )
 
     dir_path = os.path.join("data", year)
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, f"{month}.csv")
 
-    file_exists = os.path.isfile(file_path)
-    with open(file_path, "a", newline="") as f:
-        writer = csv.writer(f)
-        if not file_exists:
-            # TODO: Configurable metrics here and in chartGenerator.py
-            writer.writerow(snesor_headers)
+    sensor_row = [
+        sensor_data.get("time", datetime.now().timestamp()),
+        device_name,
+    ]
 
-        sensor_row = [
-            sensor_data.get("time", datetime.now().timestamp()),
-            device_name,
-        ]
-        for metric in metrics:
-            sensor_row.append(sensor_data.get(metric, 0))
-        writer.writerow(sensor_row)
+    for metric in metrics:
+        sensor_row.append(sensor_data.get(metric, 0))
+
+    save_data_csv(file_path, sensor_headers, sensor_row)
+
+
+def save_device_statuses(statuses):
+    year, month = get_date_parts_str()
+
+    dir_path = os.path.join("data", year)
+    os.makedirs(dir_path, exist_ok=True)
+    file_path = os.path.join(dir_path, f"{month}_status.csv")
+
+    headers = []
+    row = []
+    for device_name, device_status in statuses:
+        headers.append(device_name)
+        row.append(device_status)
+
+    save_data_csv(file_path, headers, row)
 
 
 def process_device_data(data):
@@ -62,7 +75,7 @@ def process_device_data(data):
             )
 
         print(f"{datetime.now()} | Saving data for {device_name}... ", end="")
-        save_data(device_name, device_data)
+        save_data_csv(device_name, device_data)
         print(f"Done.")
 
 
@@ -92,7 +105,11 @@ def auth():
     }
 
     response = requests.post(
-        url=AUTH_URL, data=json.dumps(payload), headers=HEADERS, verify=False
+        url=AUTH_URL,
+        data=json.dumps(payload),
+        headers=HEADERS,
+        verify=False,
+        timeout=10,
     )
     if response.ok:
         return response.json()["access_token"]
@@ -121,14 +138,6 @@ def collect_samples(process_data_fnc, retry=True):
         print(f"{datetime.now()} | Exception during collection: {e}")
 
 
-def send_device_statuses():
-    try:
-        device_statuses = collect_samples(process_device_statuses)
-        send_statuses_email(device_statuses)
-    except Exception as e:
-        print(f"{datetime.now()} | Exception during sending statuses of devices: {e}")
-
-
 def main():
     print(f"{datetime.now()} | Starting sample collector...")
 
@@ -140,9 +149,11 @@ def main():
         schedule.every(5).minutes.do(
             functools.partial(collect_samples, process_device_data)
         )
-        schedule.every().day.at("08:00").do(send_device_statuses)
+        schedule.every().day.at("07:55").do(
+            function.partial(collect_samples, process_device_statuses)
+        )
         schedule.every().day.at("08:00").do(generate_sensor_charts)
-        schedule.every().day.at("08:00").do(send_air_quality_email)
+        schedule.every().day.at("08:00").do(send_daily_email)
 
         while True:
             schedule.run_pending()

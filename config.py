@@ -11,7 +11,7 @@ metrics = [
     "voc",
 ]
 
-snesor_headers = [
+sensor_headers = [
     "time",
     "device_name",
 ].extend(metrics)
