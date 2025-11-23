@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
+from config import metrics
+from utils import find_csv_for_date, get_df_for_date
 
 # Define thresholds for metrics (default values from Airthings)
 THRESHOLDS = {
@@ -19,30 +21,19 @@ THRESHOLDS = {
 }
 THRESHOLD_COLORS = ["orange", "red"]
 
-def find_csv_for_date(target_date: datetime, base_dir: str):
-    year = target_date.strftime("%Y")
-    month = target_date.strftime("%m")
-    csv_path = os.path.join(base_dir, year, month, f"{month}.csv")
-    if not os.path.exists(csv_path):
-        print(f"{datetime.now()} | Error: No CSV found for {target_date} at {csv_path}")
-    return csv_path
-
 def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
     if target_date is None:
         target_date = datetime.now() - timedelta(days=1)
 
     csv_file_path = find_csv_for_date(target_date, base_dir)
-    df = pd.read_csv(csv_file_path)
+    df = get_df_for_date(target_date, csv_file_path)
 
-    df["datetime"] = pd.to_datetime(df["time"], unit="s") 
-    df["date"] = df["datetime"].dt.date
-
-    df = df[df["date"] == target_date.date()]
-    if df.empty:
-        print(f"{datetime.now()} | Error: No data found for {target_date.date()}")
+    if df is None:
+        print(
+            f"{datetime.now()} | Error: No data about any sensors found for {target_date} at {csv_file_path}"
+        )
         return
 
-    metrics = ["co2", "humidity", "pm10", "pm1", "pm25", "pressure", "sla", "temp", "virusRisk", "voc"]
     for device, group in df.groupby("device_name"):
         group = group.sort_values("datetime")
 
