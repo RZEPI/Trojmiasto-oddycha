@@ -150,11 +150,11 @@ def main():
         schedule.every(5).minutes.do(
             functools.partial(collect_samples, process_device_data)
         )
-        schedule.every().day.at("21:13").do(
+        schedule.every().day.at(SEND_TIME).do(
             functools.partial(collect_samples, process_device_statuses)
         )
-        schedule.every().day.at("21:13").do(generate_sensor_charts)
-        schedule.every().day.at("21:13").do(send_daily_email)
+        schedule.every().day.at(SEND_TIME).do(generate_sensor_charts)
+        schedule.every().day.at(SEND_TIME).do(send_daily_email)
 
         while True:
             schedule.run_pending()
