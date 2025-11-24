@@ -9,10 +9,8 @@ from utils import get_date_parts_str, save_data_csv
 
 load_dotenv()
 SAMPLES_URL = f"https://ext-api.airthings.com/v1/locations/{os.getenv('LOCATION_ID')}/latest-samples"
-AT_USERNAME = os.getenv("AIRTHINGS_USERNAME")
-AT_PASSWORD = os.getenv("AIRTHINGS_PASSWORD")
 AUTH_URL = "https://accounts-api.airthings.com/v1/token"
-HEADERS = {
+HEADERS_BASE = {
     "Content-Type": "application/json",
 }
 
@@ -100,17 +98,16 @@ def process_device_statuses(data):
 
 def auth():
     payload = {
-        "client_id": "accounts",
-        "grant_type": "password",
-        "password": AT_PASSWORD,
-        "username": AT_USERNAME,
+        "grant_type":"client_credentials",
+        "client_id":f"{os.getenv('CLIENT_ID')}",
+        "client_secret":f"{os.getenv('CLIENT_SECRET')}",
+        "scope": ["read:device"]
     }
 
     response = requests.post(
         url=AUTH_URL,
         data=json.dumps(payload),
-        headers=HEADERS,
-        verify=False,
+        headers=HEADERS_BASE,
         timeout=10,
     )
     if response.ok:
@@ -124,7 +121,7 @@ def auth():
 def collect_samples(process_data_fnc, retry=True):
     try:
         global token
-        sample_headers = {**HEADERS, "authorization": f"Bearer {token}"}
+        sample_headers = {**HEADERS_BASE, "authorization": f"Bearer {token}"}
 
         resp = requests.get(SAMPLES_URL, headers=sample_headers, timeout=10)
         if resp.ok:
@@ -147,15 +144,17 @@ def main():
     if token is None:
         token = auth()
 
+    collect_samples(process_device_statuses)
+
     try:
         schedule.every(5).minutes.do(
             functools.partial(collect_samples, process_device_data)
         )
-        schedule.every().day.at(SEND_TIME).do(
+        schedule.every().day.at("21:13").do(
             functools.partial(collect_samples, process_device_statuses)
         )
-        schedule.every().day.at(SEND_TIME).do(generate_sensor_charts)
-        schedule.every().day.at(SEND_TIME).do(send_daily_email)
+        schedule.every().day.at("21:13").do(generate_sensor_charts)
+        schedule.every().day.at("21:13").do(send_daily_email)
 
         while True:
             schedule.run_pending()
