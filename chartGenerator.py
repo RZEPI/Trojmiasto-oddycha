@@ -24,6 +24,9 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
         group = group.sort_values("datetime")
 
         for metric in metrics:
+            if metric not in ["pm1", "pm10", "pm25"]:
+                continue
+
             plt.figure(figsize=(10, 5))
             plt.plot(
                 group["datetime"],

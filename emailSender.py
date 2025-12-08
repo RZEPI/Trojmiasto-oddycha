@@ -11,7 +11,7 @@ load_dotenv()
 
 def send_daily_email(date: datetime = None):
     if date is None:
-        date = datetime.now() - timedelta(days=1)
+        date = datetime.now()
 
     sender = os.getenv("SENDER")
     recipient = os.getenv("RECIPIENT")
@@ -32,8 +32,8 @@ def send_daily_email(date: datetime = None):
     <html>
     <body>
         <p style="font-size:1.2em; color:#777;">
-            Generated automatically on <b>{date.today()}</b>.<br>
-            This report summarizes 24-hour readings from all sensors on {date.date()}.
+            Szanowni Państwo,
+            poniżej zestawienie pomiarów sensorów Airthings z okresu od <b>{date.today()-timedelta(days=1)}</b> do <b>{date.today()}</b>.
         </p>
         <hr>
             <ul style="list-style-type:none;">
