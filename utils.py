@@ -53,5 +53,5 @@ def load_statuses(target_date: datetime):
     if not df.empty:
         headers = df.columns.tolist()
         for device_name in headers:
-            statuses.append((device_name, df[device_name].item()))
+            statuses.append((device_name, df[device_name].iloc[-1]))
     return statuses
