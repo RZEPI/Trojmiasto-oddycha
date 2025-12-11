@@ -1,4 +1,4 @@
-# WSB with Airthings API for LPP
+# Miasto oddycha
 
 The goal is to help LPP keep their workplace safe and healthy by continuously monitoring air quality and environmental conditions. This application integrates with the Airthings API to collect real-time data from workplace sensors. The collected data is then analyzed and reported to relevant stakeholders via email.
 
@@ -17,8 +17,8 @@ Install Python: Download and install Python 3.10 from the official Python websit
 #### Clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/RZEPI/API_POC.git airthings
-cd airthings
+git clone https://github.com/RZEPI/Miasto-oddycha.git MiastoOddycha
+cd MiastoOddycha
 ```
 
 #### Create a Virtual Environment (optional, but recommended):
