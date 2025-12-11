@@ -65,7 +65,7 @@ def send_daily_email(date: datetime = None):
         html += f"<h2>Sensor: {sensor}</h2>"
         for chart_path in chart_files:
             cid = f"{sensor}_{os.path.basename(chart_path).replace('.', '_')}"
-            html += f"<h3>{chart_labels.get(os.path.splitext(os.path.basename(chart_path))[0], "N/A")}</h3>"
+            html += f"<h3>{chart_labels.get(os.path.splitext(os.path.basename(chart_path))[0], 'N/A')}</h3>"
             html += f'<img src="cid:{cid}" style="width:100%; max-width:600px; border:1px solid #ccc;"><br><br>'
             images_attached[cid] = chart_path
 
