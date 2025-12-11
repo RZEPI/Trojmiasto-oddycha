@@ -37,10 +37,7 @@ def generate_sensor_charts(target_date: datetime = None, base_dir="data"):
     for device, group in df.groupby("device_name"):
         group = group.sort_values("datetime")
 
-        for metric in metrics:
-            if metric not in ["pm1", "pm10", "pm25"]:
-                continue
-      
+        for metric in metrics:     
             plt.style.use("seaborn-v0_8")
             plt.figure(figsize=(10, 5))
             plt.plot(group["datetime"], group[metric], marker="o", linestyle="-", label=metric, markersize=3, linewidth=1.8)
