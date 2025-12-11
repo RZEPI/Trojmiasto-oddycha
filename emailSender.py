@@ -33,7 +33,7 @@ def send_daily_email(date: datetime = None):
     <html>
     <body>
         <p style="font-size:1.2em; color:#777;">
-            Szanowni Państwo,
+            Szanowni Państwo, <br>
             poniżej zestawienie pomiarów sensorów Airthings z okresu od <b>{date.today()}</b> do <b>{date.today()+timedelta(days=1)}</b>.
         </p>
         <hr>
@@ -91,4 +91,5 @@ def send_daily_email(date: datetime = None):
 
 if __name__ == "__main__":
     target_date = datetime.now()
+    target_date = datetime.fromtimestamp(1763712000)
     send_daily_email(target_date)
