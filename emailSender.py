@@ -32,8 +32,8 @@ def send_daily_email(date: datetime = None):
     <html>
     <body>
         <p style="font-size:1.2em; color:#777;">
-            Generated automatically on <b>{date.today()}</b>.<br>
-            This report summarizes 24-hour readings from all sensors on {date.date()}.
+            Szanowni Państwo,
+            poniżej zestawienie pomiarów sensorów Airthings z okresu od <b>{date.today()}</b> do <b>{date.today()+timedelta(days=1)}</b>.
         </p>
         <hr>
             <ul style="list-style-type:none;">
