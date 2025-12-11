@@ -91,5 +91,4 @@ def send_daily_email(date: datetime = None):
 
 if __name__ == "__main__":
     target_date = datetime.now()
-    target_date = datetime.fromtimestamp(1763712000)
     send_daily_email(target_date)
