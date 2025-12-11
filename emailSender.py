@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+from config import chart_labels
 from utils import load_statuses
 
 load_dotenv()
@@ -64,7 +65,7 @@ def send_daily_email(date: datetime = None):
         html += f"<h2>Sensor: {sensor}</h2>"
         for chart_path in chart_files:
             cid = f"{sensor}_{os.path.basename(chart_path).replace('.', '_')}"
-            html += f"<h3>{os.path.splitext(os.path.basename(chart_path))[0]}</h3>"
+            html += f"<h3>{chart_labels.get(os.path.splitext(os.path.basename(chart_path))[0], "N/A")}</h3>"
             html += f'<img src="cid:{cid}" style="width:100%; max-width:600px; border:1px solid #ccc;"><br><br>'
             images_attached[cid] = chart_path
 
@@ -91,4 +92,3 @@ def send_daily_email(date: datetime = None):
 if __name__ == "__main__":
     target_date = datetime.now()
     send_daily_email(target_date)
-    
