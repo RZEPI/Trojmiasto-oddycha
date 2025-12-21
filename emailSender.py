@@ -34,7 +34,7 @@ def send_daily_email(date: datetime = None):
     <body>
         <p style="font-size:1.2em; color:#777;">
             Szanowni Państwo, <br>
-            poniżej zestawienie pomiarów sensorów Airthings z okresu od <b>{date.today()}</b> do <b>{date.today()+timedelta(days=1)}</b>.
+            poniżej zestawienie pomiarów sensorów Airthings z budynku Silk z dnia {date.date()}</b>.
         </p>
         <hr>
             <ul style="list-style-type:none;">
@@ -45,6 +45,7 @@ def send_daily_email(date: datetime = None):
     for device_name, device_status in statuses:
         color = "#FF5454"
         if device_status == "low battery":
+            device_status = "słaba bateria"
             color = "#FF5100"
         elif device_status == "online":
             color = "#3ED557"
@@ -91,4 +92,4 @@ def send_daily_email(date: datetime = None):
 
 if __name__ == "__main__":
     target_date = datetime.now()
-    send_daily_email(target_date)
+    send_daily_email()
