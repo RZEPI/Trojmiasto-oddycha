@@ -92,4 +92,4 @@ def send_daily_email(date: datetime = None):
 
 if __name__ == "__main__":
     target_date = datetime.now()
-    send_daily_email()
+    send_daily_email(target_date)
