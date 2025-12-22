@@ -36,7 +36,7 @@ def send_daily_email(date: datetime = None):
             Szanowni Państwo, <br>
             poniżej zestawienie pomiarów sensorów Airthings z budynku Silk z dnia {date.date()}</b>.
         </p>
-        <p style="font-size:1.2em; color:#777;">
+        <p style="font-size:1.2em;">
             Statusy urządzeń:
         </p>
         <hr>
