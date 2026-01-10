@@ -85,8 +85,7 @@ def send_daily_email(date: datetime = None):
             )
             msg.attach(img)
 
-    with smtplib.SMTP(os.getenv("SMTP_SERVER"), os.getenv("SMTP_PORT")) as server:
-        server.starttls()
+    with smtplib.SMTP_SSL(os.getenv("SMTP_SERVER"), os.getenv("SMTP_PORT")) as server:
         server.login(sender, os.getenv("SMTP_PASSWORD"))
         server.send_message(msg)
 
