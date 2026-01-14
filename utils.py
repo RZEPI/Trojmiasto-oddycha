@@ -3,6 +3,8 @@ from datetime import datetime
 
 import pandas as pd
 
+from config import polish_month_names
+
 
 def get_date_parts_str(date: datetime = None):
     if date is None:
@@ -55,3 +57,7 @@ def load_statuses(target_date: datetime):
         for device_name in headers:
             statuses.append((device_name, df[device_name].iloc[-1]))
     return statuses
+
+
+def month_number_to_polish_name(month_number):
+    return polish_month_names[month_number - 1]

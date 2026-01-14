@@ -5,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from config import chart_labels
-from utils import load_statuses
+from utils import load_statuses, month_number_to_polish_name
 
 load_dotenv()
 
@@ -16,7 +16,8 @@ def send_daily_email(date: datetime = None):
 
     sender = os.getenv("SENDER")
     recipient = os.getenv("RECIPIENT")
-    subject = f"Airthings report for {date.date()}"
+    date_obj = date.date()
+    subject = f"Raport jakości powietrza buirowca Silk za dzień {date_obj.day} {month_number_to_polish_name(date_obj.month)} {date_obj.year}"
 
     msg = MIMEMultipart("related")
     msg["From"] = sender
