@@ -17,3 +17,18 @@ sensor_headers = [
     "time",
     "device_name",
 ] + metrics
+
+polish_month_names = [
+    "stycznia",
+    "lutego",
+    "marca",
+    "kwietnia",
+    "maja",
+    "czerwca",
+    "lipca",
+    "sierpnia",
+    "września",
+    "października",
+    "listopada",
+    "grudnia",
+]
